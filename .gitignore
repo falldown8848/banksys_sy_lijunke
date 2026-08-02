@@ -1,0 +1,27 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ---- 测试/工具缓存 ----
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# ---- 模型产物(不进 Git,由训练脚本生成并打包进镜像) ----
+models/
+
+# ---- 密钥与本地配置 ----
+.env
+.streamlit/secrets.toml
+
+# ---- 系统/日志 ----
+.DS_Store
+Thumbs.db
+*.log
