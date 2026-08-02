@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第③步,模块 D 已完成,待确认)`
-- **上一步完成**:**模块 D(在线预测页)** 已完成:`app/pages/2_predict.py`、`src/banksys/inputs.py`(输入定义+校验)、model.py 新增 `get_categorical_options`/`predict_from_inputs`;本地自检全绿(ruff+31 测试+覆盖率 100%,无警告);端到端预测验证通过(真实第一行预测 no/1.5%=真实 no)。
-- **下一步 (TODO 第一条)**:✋确认门 3(模块 D 汇报)— 确认后开发**模块 E:Docker + CI/CD**。
-- **阻塞项**:无。
+- **阶段**:`开发中(六步流程第③步,模块 E 已完成,即将进入第④步本地自检收尾)`
+- **上一步完成**:**模块 E(Docker + CI/CD)** 已完成:Dockerfile(3.11,容器内 8888,构建期训练,`PIP_INDEX_URL` 可配)、deploy.sh(端口 8888–8892 回退+幂等重启+健康检查)、ci.yml(ruff+pytest+覆盖率+训练门禁+docker 构建+健康检查冒烟)、cd.yml(SSH+rsync+deploy.sh)、README 补全。
+- **下一步 (TODO 第一条)**:✋确认门 3(模块 E 汇报)— 确认后进入**第④步本地 CI 自检收尾**,然后 push + PR。
+- **阻塞项**:本机 Docker daemon 未运行,`docker build` 本地无法验证,交由 CI 构建(`05` §2 允许)。
 
 ---
 
@@ -26,7 +26,7 @@
 - [x] **模块 B**:离线训练 `scripts/train.py` + `src/banksys/features.py`/`model.py` + 评估指标 + 测试(**AUC 0.8168 过 0.75 门槛,16 测试通过,覆盖率 100%**)
 - [x] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`(**24 测试通过,覆盖率 100%,`/health`=ok**)
 - [x] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出,**31 测试通过,覆盖率 100%,端到端验证 OK**)
-- [ ] **模块 E**:Dockerfile(端口 8888,支持 PIP_INDEX_URL)+ `ci.yml` + `cd.yml`
+- [x] **模块 E**:Dockerfile(端口 8888,构建期训练,PIP_INDEX_URL)+ `deploy.sh` + `ci.yml` + `cd.yml`(**本地 31 测试/覆盖率 100%;docker 构建交 CI**)
 - [ ] **第④步本地自检**:`ruff format --check .` + `ruff check .` + `pytest --cov --cov-fail-under=80`(✋确认门 4)
 - [ ] **第⑤步**:push feature 分支 + `gh pr create` + CI 复检(✋确认门 5)
 - [ ] **第⑥步**:人工 Review + 人工合并 → CD 自动部署 → 健康检查 `/_stcore/health`(✋确认门 6,报最终端口)
@@ -47,6 +47,8 @@
 | 2026-08-02 | **建模排除 `duration`**:对比实验 含=0.89 vs 不含=0.82(AUC),均过门槛;取不含 | `duration` 为通话时长,预测时刻未知且强关联目标,存在泄漏;用 `MODEL_FEATURES` 区分数据集字段与建模字段 |
 | 2026-08-02 | **模型门槛定为 AUC ≥ 0.75**(无 duration 实测 0.82) | 二分类标准指标,阈值无关、对不平衡稳健;margin 约 0.07 |
 | 2026-08-02 | **预测页输入范围**以 `inputs.py` 单一来源定义;分类选项从 OneHotEncoder 提取 | 页面/校验/测试共用一份定义;分类取值以训练管道为准,避免与数据重复加载 |
+| 2026-08-02 | **训练放 Docker 构建期**:`RUN python scripts/train.py` 生成模型入镜像 | `models/` 不进 Git;构建期训练保证镜像自包含,且 AUC 不达标构建即失败 |
+| 2026-08-02 | **CI 双 job**:check(ruff/pytest/训练门禁)+ docker(构建+容器健康检查冒烟) | 快反馈 + 镜像可运行性分离;健康检查为项目特有门禁 |
 
 ---
 
@@ -56,6 +58,7 @@
 - **本机无 conda/uv/3.11,仅 Python 3.13**:标准 `05` §6 优先 conda 但本机没有;解决:用 `py -3.13 -m venv .venv` 建本地环境,运行 pytest/ruff;验证:`.venv/Scripts/python.exe -V`。CI/CD 仍用 3.11。
 - **Windows 控制台中文乱码**:脚本 print 中文在 GBK 控制台乱码;解决:运行前 `PYTHONIOENCODING=utf-8`,或改纯 ASCII;验证:本次 `train.py` 输出仍正常完成、`metrics.json` 为 UTF-8 无损。
 - **joblib × numpy 2.5 DeprecationWarning**(83 条):`array.shape = self.shape` 已弃用;影响:仅警告不影响测试通过;解决:暂记录,后续可锁 numpy<2.5 或等 joblib 新版。
+- **本机 Docker daemon 未运行**:`docker info` 拿不到 Server Version;影响:本地无法 `docker build`;解决:按 `05` §2 本地不强制 Docker,构建由 CI(ubuntu runner)验证;验证:PR 上 CI docker job 全绿。
 - **`duration` 泄漏风险**:该字段对 `subscribe` 有极强关联,可能高估 AUC;解决:建模时对比「含/不含 duration」两版,决策写回本表;验证:复现指标并记录到 ADR。
 
 ---

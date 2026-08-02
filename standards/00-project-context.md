@@ -51,15 +51,16 @@ banksys_sy_lijunke/
 ├── scripts/
 │   └── train.py               # 离线训练 CLI:加载→清洗→训练→评估→存模型
 ├── models/                    # 模型产物(训练生成,**不进 Git**)
-├── tests/                     # pytest 测试
+├── tests/                     # pytest 测试(含页面 AppTest 冒烟)
 ├── requirements.txt           # 生产运行依赖
 ├── requirements-dev.txt       # 本地/CI 检查依赖
-├── Dockerfile                 # 容器内固定 8888
+├── Dockerfile                 # 容器内固定 8888;构建期训练生成模型
 ├── .dockerignore
+├── deploy.sh                  # CD 远程部署脚本(构建/端口回退/幂等重启/健康检查)
 ├── .gitignore                 # 忽略 models/、__pycache__ 等
 ├── .github/workflows/
-│   ├── ci.yml                 # PR/push:ruff+pytest+覆盖率+构建
-│   └── cd.yml                 # main 合并:SSH→部署→健康检查
+│   ├── ci.yml                 # PR/push:ruff+pytest+覆盖率+训练门禁+构建+健康检查
+│   └── cd.yml                 # main 合并:SSH→rsync→deploy.sh→健康检查
 └── README.md
 ```
 
