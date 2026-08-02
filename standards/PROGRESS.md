@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第③步,模块 E 已完成,即将进入第④步本地自检收尾)`
-- **上一步完成**:**模块 E(Docker + CI/CD)** 已完成:Dockerfile(3.11,容器内 8888,构建期训练,`PIP_INDEX_URL` 可配)、deploy.sh(端口 8888–8892 回退+幂等重启+健康检查)、ci.yml(ruff+pytest+覆盖率+训练门禁+docker 构建+健康检查冒烟)、cd.yml(SSH+rsync+deploy.sh)、README 补全。
-- **下一步 (TODO 第一条)**:✋确认门 3(模块 E 汇报)— 确认后进入**第④步本地 CI 自检收尾**,然后 push + PR。
-- **阻塞项**:本机 Docker daemon 未运行,`docker build` 本地无法验证,交由 CI 构建(`05` §2 允许)。
+- **阶段**:`开发中(六步流程第⑤步,push + PR 发起中)`
+- **上一步完成**:✋确认门 4 — **第④步本地 CI 自检全绿**:ruff 格式/静态 ✅、pytest 31 passed 覆盖率 100% ✅、训练门禁 AUC 0.8168 ✅。
+- **下一步 (TODO 第一条)**:push `feature/1-init-engineering` + 创建 Issue + `gh pr create`,发完 PR 即停下等人工审核(✋确认门 5)。
+- **阻塞项**:CI 的 docker 构建待 PR 触发验证(本地无 daemon)。
 
 ---
 
