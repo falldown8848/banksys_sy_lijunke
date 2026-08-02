@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第⑤步,PR 已发,CI 首次红灯,修复中)`
-- **上一步完成**:✋确认门 4 — **第④步本地 CI 自检全绿**(ruff/31 测试/覆盖率 100%/AUC 0.8168)。PR #2 已创建;CI 首次运行:**docker 构建+健康检查通过**,**Lint & Tests 红灯**。
-- **下一步 (TODO 第一条)**:提交 ci.yml + README 修复(`pip install -e .`)并 push,复检 CI 全绿。
-- **阻塞项**:CI 红灯待复检;docker 构建本地无法验证(无 daemon)。
+- **阶段**:`已上线(六步流程全部完成:建仓→PR→CI→合并→CD 部署成功)`
+- **上一步完成**:✋确认门 6 — **CD 部署成功**:镜像构建通过(AUC 0.8168),主机端口回退到 **8898**,容器运行,`/_stcore/health` 返回 **ok**。访问 `http://<SSH_HOST>:8898`。
+- **下一步 (TODO 第一条)**:可选 — 确认服务器防火墙/安全组放行 8898;将文档分支合并收尾。
+- **阻塞项**:无(部署已完成)。
 
 ---
 
@@ -27,10 +27,10 @@
 - [x] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`(**24 测试通过,覆盖率 100%,`/health`=ok**)
 - [x] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出,**31 测试通过,覆盖率 100%,端到端验证 OK**)
 - [x] **模块 E**:Dockerfile(端口 8888,构建期训练,PIP_INDEX_URL)+ `deploy.sh` + `ci.yml` + `cd.yml`(**本地 31 测试/覆盖率 100%;docker 构建交 CI**)
-- [ ] **第④步本地自检**:`ruff format --check .` + `ruff check .` + `pytest --cov --cov-fail-under=80`(✋确认门 4)
-- [ ] **第⑤步**:push feature 分支 + `gh pr create` + CI 复检(✋确认门 5)
-- [ ] **第⑥步**:人工 Review + 人工合并 → CD 自动部署 → 健康检查 `/_stcore/health`(✋确认门 6,报最终端口)
-- [ ] 会话结束前更新本文件
+- [x] **第④步本地自检**:`ruff format --check .` + `ruff check .` + `pytest --cov --cov-fail-under=80`(**全绿**:31 测试/覆盖率 100%)(✋确认门 4)
+- [x] **第⑤步**:push feature 分支 + `gh pr create`(PR #2)+ CI 复检(**全绿**)(✋确认门 5)
+- [x] **第⑥步**:人工 Review + 人工合并(PR #2/#3/#4/#5)→ CD 自动部署成功 → 健康检查 `/_stcore/health` 返回 ok,最终端口 **8898**(✋确认门 6)
+- [x] 会话结束前更新本文件
 
 ---
 
@@ -68,10 +68,10 @@
 
 - [x] 完成 `standards/00`、`01`、本文件初始化(2026-08-02)
 - [x] 建仓:开源仓库 `falldown8848/banksys_sy_lijunke` 已创建,main 引导提交已推送(2026-08-02)
-- [ ] Secrets 就绪(`SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER`)
-- [ ] feature 分支开发完成
-- [ ] 本地自检全绿
-- [ ] PR + CI 通过
-- [ ] 合并 main → CD 部署成功,`/_stcore/health` 返回 ok
+- [x] Secrets 就绪(`SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER`)
+- [x] feature 分支开发完成(A~E 五模块,31 测试,覆盖率 100%,AUC 0.8168)
+- [x] 本地自检全绿
+- [x] PR #2 + CI 全绿(Lint & Tests + Docker Build & Smoke)
+- [x] **合并 main → CD 部署成功:端口 8898,`/_stcore/health` 返回 ok(2026-08-02)**
 
 > 反臃肿:里程碑超过 15 条时,把更早内容合并成一行摘要,保持本文件可快速阅读。
