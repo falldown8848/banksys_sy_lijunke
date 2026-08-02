@@ -98,7 +98,7 @@ banksys_sy_lijunke/
 | `<APP>` | `banksys_sy_lijunke` | 镜像名/容器名 |
 | `<DEPLOY_DIR>` | `/opt/banksys_sy_lijunke` | 服务器部署目录 |
 | `<PORT>` | `8888` | 服务端口(主机优先) |
-| `<PORT_MAX>` | `8892` | 主机端口回退区间上限 |
+| `<PORT_MAX>` | `8899` | 主机端口回退区间上限 |
 | `容器内端口` | `8888` | Docker 内固定,Streamlit `--server.port=8888` |
 | `<PYVER>` | `3.11` | Python 版本 |
 | `<HEALTHCHECK>` | `/_stcore/health` | Streamlit 内置健康检查,返回 `ok` |
