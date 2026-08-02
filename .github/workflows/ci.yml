@@ -1,0 +1,62 @@
+# CI:格式 / 静态检查 / 单元测试+覆盖率 / 训练门禁 / Docker 构建+健康检查
+# 触发:PR 与 push main。红灯不允许合并(见 standards/05 §2)。
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    name: Lint & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 安装开发依赖 + 项目包
+        run: |
+          pip install -r requirements-dev.txt
+          pip install -e .
+
+      - name: 格式检查
+        run: ruff format --check .
+
+      - name: 静态检查
+        run: ruff check .
+
+      - name: 单元测试 + 覆盖率(≥80%)
+        run: pytest --cov --cov-fail-under=80
+
+      - name: 模型训练门禁(验证集 AUC ≥ 0.75)
+        run: python scripts/train.py --out models/pipeline.joblib
+
+  docker:
+    name: Docker Build & Smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker 构建(含构建期训练)
+        run: docker build -t banksys_sy_lijunke:ci .
+
+      - name: 容器健康检查冒烟
+        run: |
+          docker run -d --name smoke -p 8888:8888 banksys_sy_lijunke:ci
+          for _ in $(seq 1 15); do
+            if curl -fsS http://localhost:8888/_stcore/health; then
+              echo ">> 健康检查通过"
+              docker rm -f smoke
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "!! 健康检查超时"
+          docker rm -f smoke || true
+          exit 1

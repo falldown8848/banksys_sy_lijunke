@@ -1,0 +1,39 @@
+# CD:合并 main 后自动部署到服务器(SSH → rsync → deploy.sh)。
+# 需 GitHub Secrets:SSH_PRIVATE_KEY / SSH_HOST / SSH_USER(见 standards/05 §5)。
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 配置 SSH 密钥与目标信息
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSH_HOST=$SSH_HOST" >> "$GITHUB_ENV"
+          echo "SSH_USER=$SSH_USER" >> "$GITHUB_ENV"
+
+      - name: 同步代码到服务器
+        run: |
+          rsync -avz --delete \
+            --exclude '.git' --exclude '.venv' --exclude 'models' \
+            ./ "${SSH_USER}@${SSH_HOST}:/opt/banksys_sy_lijunke/"
+
+      - name: 远程构建并部署
+        run: |
+          ssh "${SSH_USER}@${SSH_HOST}" \
+            'cd /opt/banksys_sy_lijunke && SSH_HOST="'"$SSH_HOST"'" bash deploy.sh'
