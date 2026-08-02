@@ -27,6 +27,7 @@
 python -m venv .venv
 # Windows: .venv\Scripts\activate    Linux/macOS: source .venv/bin/activate
 pip install -r requirements-dev.txt
+pip install -e .              # 安装项目自身(banksys 包,src 布局)
 
 # 2) 训练模型(生成 models/pipeline.joblib + metrics.json)
 python scripts/train.py            # 验证集 AUC < 0.75 会非零退出

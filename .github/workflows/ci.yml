@@ -20,8 +20,10 @@ jobs:
           python-version: "3.11"
           cache: pip
 
-      - name: 安装开发依赖
-        run: pip install -r requirements-dev.txt
+      - name: 安装开发依赖 + 项目包
+        run: |
+          pip install -r requirements-dev.txt
+          pip install -e .
 
       - name: 格式检查
         run: ruff format --check .

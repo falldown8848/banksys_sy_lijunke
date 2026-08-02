@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第⑤步,push + PR 发起中)`
-- **上一步完成**:✋确认门 4 — **第④步本地 CI 自检全绿**:ruff 格式/静态 ✅、pytest 31 passed 覆盖率 100% ✅、训练门禁 AUC 0.8168 ✅。
-- **下一步 (TODO 第一条)**:push `feature/1-init-engineering` + 创建 Issue + `gh pr create`,发完 PR 即停下等人工审核(✋确认门 5)。
-- **阻塞项**:CI 的 docker 构建待 PR 触发验证(本地无 daemon)。
+- **阶段**:`开发中(六步流程第⑤步,PR 已发,CI 首次红灯,修复中)`
+- **上一步完成**:✋确认门 4 — **第④步本地 CI 自检全绿**(ruff/31 测试/覆盖率 100%/AUC 0.8168)。PR #2 已创建;CI 首次运行:**docker 构建+健康检查通过**,**Lint & Tests 红灯**。
+- **下一步 (TODO 第一条)**:提交 ci.yml + README 修复(`pip install -e .`)并 push,复检 CI 全绿。
+- **阻塞项**:CI 红灯待复检;docker 构建本地无法验证(无 daemon)。
 
 ---
 
@@ -59,6 +59,7 @@
 - **Windows 控制台中文乱码**:脚本 print 中文在 GBK 控制台乱码;解决:运行前 `PYTHONIOENCODING=utf-8`,或改纯 ASCII;验证:本次 `train.py` 输出仍正常完成、`metrics.json` 为 UTF-8 无损。
 - **joblib × numpy 2.5 DeprecationWarning**(83 条):`array.shape = self.shape` 已弃用;影响:仅警告不影响测试通过;解决:暂记录,后续可锁 numpy<2.5 或等 joblib 新版。
 - **本机 Docker daemon 未运行**:`docker info` 拿不到 Server Version;影响:本地无法 `docker build`;解决:按 `05` §2 本地不强制 Docker,构建由 CI(ubuntu runner)验证;验证:PR 上 CI docker job 全绿。
+- **CI 红灯:`No module named 'banksys'`**:`scripts/train.py` 直接运行需 `banksys` 包;CI 只 `pip install -r requirements-dev.txt`,未装 src 布局项目包;本地因手动 `pip install -e .` 掩盖了此问题。解决:CI 安装步骤追加 `pip install -e .`,README 同步;验证:复检 CI Lint & Tests job 全绿。
 - **`duration` 泄漏风险**:该字段对 `subscribe` 有极强关联,可能高估 AUC;解决:建模时对比「含/不含 duration」两版,决策写回本表;验证:复现指标并记录到 ADR。
 
 ---
