@@ -8,10 +8,10 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`初始化(六步流程第②步,开 feature 分支,待确认开发)`
-- **上一步完成**:✋确认门 1 通过 — 三个 Secrets(`SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER`)已由人类配置并经 `gh secret list` 核对。
-- **下一步 (TODO 第一条)**:✋确认门 2 — 确认分支名 `feature/1-init-engineering` 后进入第③步模块化开发(模块 A)。
-- **阻塞项**:本地 `python` 指向 WindowsApps 占位,开发前需确认真 Python 3.11(conda/venv)。
+- **阶段**:`开发中(六步流程第③步,模块 B 已完成,待确认)`
+- **上一步完成**:**模块 B(离线训练)** 已完成:`src/banksys/features.py`+`model.py`、`scripts/train.py`、测试;本地自检全绿(ruff+16 测试+覆盖率 100%);真实训练 **AUC 0.8168**(无 duration,门槛 0.75)。
+- **下一步 (TODO 第一条)**:✋确认门 3(模块 B 汇报)— 确认后开发**模块 C:Streamlit 数据分析页**。
+- **阻塞项**:无。
 
 ---
 
@@ -21,9 +21,9 @@
 - [x] 确认需求与验收标准:`01-requirements.md`
 - [x] **第①步建仓**:`gh auth login` 重新认证 → 已建开源仓库 `falldown8848/banksys_sy_lijunke` 并推送 main
 - [x] 提示人类在 GitHub 配置 `SSH_PRIVATE_KEY`/`SSH_HOST`/`SSH_USER`(✋确认门 1,`gh secret list` 核对后继续)
-- [ ] **第②步**:从 `main` 开 `feature/1-init-engineering` 分支(✋确认门 2)
-- [ ] **模块 A**:工程骨架(目录、`.gitignore`、requirements、README)+ 数据层 `src/banksys/data.py` + 测试
-- [ ] **模块 B**:离线训练 `scripts/train.py` + `src/banksys/features.py`/`model.py` + 评估指标 + 测试(✋每个模块汇报)
+- [x] **第②步**:从 `main` 开 `feature/1-init-engineering` 分支(✋确认门 2)
+- [x] **模块 A**:工程骨架(目录、`.gitignore`、requirements、pyproject、README)+ 数据层 `src/banksys/data.py` + 测试(**ruff 通过,6 测试通过,覆盖率 100%**,提交 `8fdf5c2`)
+- [x] **模块 B**:离线训练 `scripts/train.py` + `src/banksys/features.py`/`model.py` + 评估指标 + 测试(**AUC 0.8168 过 0.75 门槛,16 测试通过,覆盖率 100%**)
 - [ ] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`
 - [ ] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出)
 - [ ] **模块 E**:Dockerfile(端口 8888,支持 PIP_INDEX_URL)+ `ci.yml` + `cd.yml`
@@ -43,13 +43,18 @@
 | 2026-08-02 | 数据 `data/*.csv` 进 Git;模型产物 `models/` 不进 Git | 公开教学数据可入库(`05` §7);模型由训练脚本生成并打包进镜像 |
 | 2026-08-02 | 模型门槛:验证集 AUC ≥ 0.75,不达标训练脚本非零退出 | 二分类核心指标;需评估 `duration` 泄漏风险后再定最终门槛 |
 | 2026-08-02 | 模型/特征处理放 `src/banksys`,页面只做 UI 层,预测复用同一管道 | 保证页面与离线预测一致(US-4 AC5),且核心逻辑可单测 |
+| 2026-08-02 | **本地开发用 Python 3.13**(本机无 conda/uv/3.11),运行时与 CI/CD 仍固定 3.11 | 本机仅装 3.13;代码避免 3.12+ 专属语法,保证 3.11 兼容 |
+| 2026-08-02 | **建模排除 `duration`**:对比实验 含=0.89 vs 不含=0.82(AUC),均过门槛;取不含 | `duration` 为通话时长,预测时刻未知且强关联目标,存在泄漏;用 `MODEL_FEATURES` 区分数据集字段与建模字段 |
+| 2026-08-02 | **模型门槛定为 AUC ≥ 0.75**(无 duration 实测 0.82) | 二分类标准指标,阈值无关、对不平衡稳健;margin 约 0.07 |
 
 ---
 
 ## 已知坑 (GOTCHAS)
 
 - **`gh` token 失效**:`gh auth status` 显示 falldown8848 的 token invalid;解决:先 `gh auth login -h github.com` 重新认证;验证:`gh auth status`。
-- **WindowsApps 占位 python**:`which python` 指向 WindowsApps 占位(可能打不开);解决:用 conda 建 `python=3.11` 环境(默认,`05` §6);验证:`python -V` 显示 3.11.x。
+- **本机无 conda/uv/3.11,仅 Python 3.13**:标准 `05` §6 优先 conda 但本机没有;解决:用 `py -3.13 -m venv .venv` 建本地环境,运行 pytest/ruff;验证:`.venv/Scripts/python.exe -V`。CI/CD 仍用 3.11。
+- **Windows 控制台中文乱码**:脚本 print 中文在 GBK 控制台乱码;解决:运行前 `PYTHONIOENCODING=utf-8`,或改纯 ASCII;验证:本次 `train.py` 输出仍正常完成、`metrics.json` 为 UTF-8 无损。
+- **joblib × numpy 2.5 DeprecationWarning**(83 条):`array.shape = self.shape` 已弃用;影响:仅警告不影响测试通过;解决:暂记录,后续可锁 numpy<2.5 或等 joblib 新版。
 - **`duration` 泄漏风险**:该字段对 `subscribe` 有极强关联,可能高估 AUC;解决:建模时对比「含/不含 duration」两版,决策写回本表;验证:复现指标并记录到 ADR。
 
 ---

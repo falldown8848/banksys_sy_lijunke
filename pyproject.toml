@@ -18,7 +18,9 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4"]
-ignore = ["N818"]
+# N803/N806:特征矩阵 X 与标签 y 是 sklearn/ML 惯例命名,保留大写。
+# N818:异常类名后缀规则,本项目自定义异常不适用。
+ignore = ["N818", "N803", "N806"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
