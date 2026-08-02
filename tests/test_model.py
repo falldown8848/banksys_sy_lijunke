@@ -5,12 +5,21 @@ import pandas as pd
 import pytest
 from sklearn.pipeline import Pipeline
 
-from banksys.config import CATEGORICAL_FEATURES, FEATURES, NUMERIC_FEATURES, TARGET
+from banksys.config import (
+    CATEGORICAL_FEATURES,
+    FEATURES,
+    MODEL_CATEGORICAL_FEATURES,
+    MODEL_NUMERIC_FEATURES,
+    NUMERIC_FEATURES,
+    TARGET,
+)
 from banksys.model import (
     evaluate_model,
+    get_categorical_options,
     load_model,
     meets_gate,
     predict,
+    predict_from_inputs,
     save_model,
     train_and_evaluate,
     train_model,
@@ -96,3 +105,29 @@ def test_meets_gate_boundaries():
     assert meets_gate({"auc": 0.80}, 0.75) is True
     assert meets_gate({"auc": 0.75}, 0.75) is True
     assert meets_gate({"auc": 0.74}, 0.75) is False
+
+
+def test_get_categorical_options_returns_all_fields(sample_df):
+    # Arrange
+    pipeline = train_model(sample_df[FEATURES], sample_df[TARGET], n_estimators=20)
+
+    # Act
+    options = get_categorical_options(pipeline)
+
+    # Assert:选项覆盖所有建模分类字段且非空
+    assert set(options) == set(MODEL_CATEGORICAL_FEATURES)
+    assert all(len(values) > 0 for values in options.values())
+
+
+def test_predict_from_inputs_returns_label_and_proba(sample_df):
+    # Arrange
+    pipeline = train_model(sample_df[FEATURES], sample_df[TARGET], n_estimators=20)
+    inputs = {col: float(sample_df[col].iloc[0]) for col in MODEL_NUMERIC_FEATURES}
+    inputs.update({col: sample_df[col].iloc[0] for col in MODEL_CATEGORICAL_FEATURES})
+
+    # Act
+    pred, proba = predict_from_inputs(pipeline, inputs)
+
+    # Assert
+    assert pred in {"yes", "no"}
+    assert 0.0 <= proba <= 1.0

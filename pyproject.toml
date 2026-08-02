@@ -26,6 +26,11 @@ ignore = ["N818", "N803", "N806"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 addopts = "-q"
+# 已知第三方良性警告:AppTest bare 模式缺 ScriptRunContext;joblib×numpy 2.5 弃用
+filterwarnings = [
+    "ignore:.*missing ScriptRunContext.*",
+    "ignore:Setting the shape on a NumPy array has been deprecated.*",
+]
 
 [tool.coverage.run]
 source = ["banksys"]

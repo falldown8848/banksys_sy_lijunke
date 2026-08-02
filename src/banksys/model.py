@@ -16,6 +16,8 @@ from sklearn.pipeline import Pipeline
 from banksys.config import (
     DEFAULT_MODEL_PATH,
     ID_COL,
+    MODEL_CATEGORICAL_FEATURES,
+    MODEL_FEATURES,
     RANDOM_STATE,
     TARGET,
     VALIDATION_SPLIT,
@@ -98,6 +100,29 @@ def predict(pipeline: Pipeline, X: pd.DataFrame) -> tuple[np.ndarray, np.ndarray
     proba = pipeline.predict_proba(X)[:, 1]
     pred = pipeline.predict(X)
     return pred, proba
+
+
+def get_categorical_options(pipeline: Pipeline) -> dict[str, list[str]]:
+    """从已训练管道提取各分类字段的取值列表,供点选表单使用。
+
+    顺序与 MODEL_CATEGORICAL_FEATURES 一致(OneHotEncoder categories_)。
+    """
+    encoder = pipeline.named_steps["prep"].named_transformers_["cat"]
+    return {
+        col: list(cats)
+        for col, cats in zip(MODEL_CATEGORICAL_FEATURES, encoder.categories_, strict=True)
+    }
+
+
+def predict_from_inputs(pipeline: Pipeline, inputs: dict[str, object]) -> tuple[str, float]:
+    """根据点选/输入的 {特征: 值} 字典构建一行数据并预测。
+
+    返回 (预测标签 'yes'/'no', 认购概率)。键需覆盖 MODEL_FEATURES。
+    """
+    row = pd.DataFrame([{col: inputs[col] for col in MODEL_FEATURES}])
+    proba = pipeline.predict_proba(row)[:, 1][0]
+    pred = pipeline.predict(row)[0]
+    return pred, float(proba)
 
 
 def meets_gate(metrics: dict, min_auc: float) -> bool:

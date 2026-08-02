@@ -8,9 +8,9 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第③步,模块 C 已完成,待确认)`
-- **上一步完成**:**模块 C(数据分析页)** 已完成:`src/banksys/analysis.py`(分析纯函数)、`app/main.py`(入口)、`app/pages/1_data_analysis.py`;本地自检全绿(ruff+24 测试+覆盖率 100%);真实启动验证 `/_stcore/health`=ok。
-- **下一步 (TODO 第一条)**:✋确认门 3(模块 C 汇报)— 确认后开发**模块 D:在线预测页 `app/pages/2_predict.py`**。
+- **阶段**:`开发中(六步流程第③步,模块 D 已完成,待确认)`
+- **上一步完成**:**模块 D(在线预测页)** 已完成:`app/pages/2_predict.py`、`src/banksys/inputs.py`(输入定义+校验)、model.py 新增 `get_categorical_options`/`predict_from_inputs`;本地自检全绿(ruff+31 测试+覆盖率 100%,无警告);端到端预测验证通过(真实第一行预测 no/1.5%=真实 no)。
+- **下一步 (TODO 第一条)**:✋确认门 3(模块 D 汇报)— 确认后开发**模块 E:Docker + CI/CD**。
 - **阻塞项**:无。
 
 ---
@@ -25,7 +25,7 @@
 - [x] **模块 A**:工程骨架(目录、`.gitignore`、requirements、pyproject、README)+ 数据层 `src/banksys/data.py` + 测试(**ruff 通过,6 测试通过,覆盖率 100%**,提交 `8fdf5c2`)
 - [x] **模块 B**:离线训练 `scripts/train.py` + `src/banksys/features.py`/`model.py` + 评估指标 + 测试(**AUC 0.8168 过 0.75 门槛,16 测试通过,覆盖率 100%**)
 - [x] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`(**24 测试通过,覆盖率 100%,`/health`=ok**)
-- [ ] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出)
+- [x] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出,**31 测试通过,覆盖率 100%,端到端验证 OK**)
 - [ ] **模块 E**:Dockerfile(端口 8888,支持 PIP_INDEX_URL)+ `ci.yml` + `cd.yml`
 - [ ] **第④步本地自检**:`ruff format --check .` + `ruff check .` + `pytest --cov --cov-fail-under=80`(✋确认门 4)
 - [ ] **第⑤步**:push feature 分支 + `gh pr create` + CI 复检(✋确认门 5)
@@ -46,6 +46,7 @@
 | 2026-08-02 | **本地开发用 Python 3.13**(本机无 conda/uv/3.11),运行时与 CI/CD 仍固定 3.11 | 本机仅装 3.13;代码避免 3.12+ 专属语法,保证 3.11 兼容 |
 | 2026-08-02 | **建模排除 `duration`**:对比实验 含=0.89 vs 不含=0.82(AUC),均过门槛;取不含 | `duration` 为通话时长,预测时刻未知且强关联目标,存在泄漏;用 `MODEL_FEATURES` 区分数据集字段与建模字段 |
 | 2026-08-02 | **模型门槛定为 AUC ≥ 0.75**(无 duration 实测 0.82) | 二分类标准指标,阈值无关、对不平衡稳健;margin 约 0.07 |
+| 2026-08-02 | **预测页输入范围**以 `inputs.py` 单一来源定义;分类选项从 OneHotEncoder 提取 | 页面/校验/测试共用一份定义;分类取值以训练管道为准,避免与数据重复加载 |
 
 ---
 
