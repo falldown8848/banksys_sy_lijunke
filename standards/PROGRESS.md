@@ -8,9 +8,9 @@
 
 ## 当前状态 (最后更新: 2026-08-02 · by Claude)
 
-- **阶段**:`开发中(六步流程第③步,模块 B 已完成,待确认)`
-- **上一步完成**:**模块 B(离线训练)** 已完成:`src/banksys/features.py`+`model.py`、`scripts/train.py`、测试;本地自检全绿(ruff+16 测试+覆盖率 100%);真实训练 **AUC 0.8168**(无 duration,门槛 0.75)。
-- **下一步 (TODO 第一条)**:✋确认门 3(模块 B 汇报)— 确认后开发**模块 C:Streamlit 数据分析页**。
+- **阶段**:`开发中(六步流程第③步,模块 C 已完成,待确认)`
+- **上一步完成**:**模块 C(数据分析页)** 已完成:`src/banksys/analysis.py`(分析纯函数)、`app/main.py`(入口)、`app/pages/1_data_analysis.py`;本地自检全绿(ruff+24 测试+覆盖率 100%);真实启动验证 `/_stcore/health`=ok。
+- **下一步 (TODO 第一条)**:✋确认门 3(模块 C 汇报)— 确认后开发**模块 D:在线预测页 `app/pages/2_predict.py`**。
 - **阻塞项**:无。
 
 ---
@@ -24,7 +24,7 @@
 - [x] **第②步**:从 `main` 开 `feature/1-init-engineering` 分支(✋确认门 2)
 - [x] **模块 A**:工程骨架(目录、`.gitignore`、requirements、pyproject、README)+ 数据层 `src/banksys/data.py` + 测试(**ruff 通过,6 测试通过,覆盖率 100%**,提交 `8fdf5c2`)
 - [x] **模块 B**:离线训练 `scripts/train.py` + `src/banksys/features.py`/`model.py` + 评估指标 + 测试(**AUC 0.8168 过 0.75 门槛,16 测试通过,覆盖率 100%**)
-- [ ] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`
+- [x] **模块 C**:Streamlit 数据分析页 `app/pages/1_data_analysis.py`(**24 测试通过,覆盖率 100%,`/health`=ok**)
 - [ ] **模块 D**:在线预测页 `app/pages/2_predict.py`(点选输入 + 概率输出)
 - [ ] **模块 E**:Dockerfile(端口 8888,支持 PIP_INDEX_URL)+ `ci.yml` + `cd.yml`
 - [ ] **第④步本地自检**:`ruff format --check .` + `ruff check .` + `pytest --cov --cov-fail-under=80`(✋确认门 4)
