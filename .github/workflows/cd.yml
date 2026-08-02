@@ -21,7 +21,8 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          # 防御性处理:字面 \n 转真实换行 + 去除 CR,避免 Secret 换行损坏导致 libcrypto 报错
+          printf '%s' "$SSH_PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts 2>/dev/null
           echo "SSH_HOST=$SSH_HOST" >> "$GITHUB_ENV"
