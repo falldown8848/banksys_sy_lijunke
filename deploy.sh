@@ -7,7 +7,7 @@ APP="banksys_sy_lijunke"
 DEPLOY_DIR="/opt/${APP}"
 HOST="${SSH_HOST:-}"
 PORT=8888
-PORT_MAX=8892
+PORT_MAX=8899
 CONTAINER_PORT=8888
 PIP_INDEX_URL="${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
 
